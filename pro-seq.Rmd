@@ -1,0 +1,98 @@
+---
+title: "simulation"
+author: "Sarah Arcos"
+date: "08/23/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+
+Monica 08/23/19
+ - Just removing gene names and adding noise. This is because I want to maintain potential time-course patterns in the data.
+```{r}
+#read in
+monica_082319 <- read_csv("data/pro-seq/081819_T2T6T24h_heatmapbinsgbupdn_T24hsiglistcom.csv")
+
+monica_082319_noise <- monica_082319 %>%
+  mutate_at(2:4, jitter) %>%
+  mutate(`Gene list` = sample(1:10000, size = length(`Gene list`))) %>%
+  write_csv("sim_data/monica_092319_noise.csv")
+```
+
+Hillary 08/23/19
+```{r}
+read_csv("data/pro-seq/20190813_DHL4_timecourse_T0.5_T24_sharedgbchangeT0.5_T6_log2foldchange_hightohigh.csv") %>%
+  mutate_at(2:6, jitter) %>%
+  mutate(`Transcript ID (duplicates removed)` = sample(1:10000, size = length(`Transcript ID (duplicates removed)`))) %>%
+  write_csv("sim_data/hillary_082319_noise.csv")
+```
+
+Andrew 08/16/19
+```{r}
+ani <- function(filename){
+  read_tsv(paste0("data/anisotropy/", filename)) %>%
+    mutate_at(1, jitter, 10) %>%
+    write_tsv(paste0("sim_data/andrew_081619_", str_remove(filename, ".txt"), "_noise.tsv"))
+}
+
+ani("WT.txt")
+ani("150NaCl_HEPES.txt")
+ani("50NaCl_Tris.txt")
+ani("150NaCl_Tris.txt")
+```
+
+Katie 08/09/19
+ - Just removing gene names and adding noise. This is because I want to maintain potential time-course patterns in the data.
+ - Special case for 0 values
+```{r}
+read_tsv("data/rna-seq/cds.fpkm_tracking") %>%
+  mutate_if(is.numeric, funs(case_when(
+    . > 0 ~ jitter(.),
+    TRUE ~ .
+  ))) %>%
+  mutate_if(is.numeric, abs) %>%
+  mutate(tracking_id = sample(1:100000, size = length(tracking_id)),
+         gene_id  = sample(1:100000, size = length(tracking_id)),
+         gene_short_name = sample(1:100000, size = length(tracking_id)),
+         tss_id = sample(1:100000, size = length(tracking_id)),
+         locus = sample(1:100000, size = length(tracking_id))) %>%
+  write_csv("sim_data/katie_080919_noise.csv")
+```
+
+MaxQuant 07/26/19
+```{r}
+read_tsv("data/proteomics/proteinGroups.txt") %>%
+  mutate_if(is.character, funs(sample(1:10000, length(.)))) %>%
+  mutate_if(is.numeric, funs(case_when(
+    . > 0 ~ as.double(abs(round(jitter(.)))),
+    TRUE ~ as.double(.)
+  ))) %>%
+  write_tsv("sim_data/maxquant_072619.tsv")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
